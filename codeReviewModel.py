@@ -3,14 +3,7 @@
 
 import os
 from gpt4all import GPT4All
-
-# Custom guidelines
-# Text
-# Generic format append with file text, as plugin
-# Medium actual project files, 2 - 3 files
-# Also, note the performance and time for response, accuracy
-# Self training, to get more personalized
-#
+import sys
 
 SYSTEM_TEMPLATE = ('You are a senior developer for reviewing the code. Use the following given context to give '
                    'suggestions on improving the code quality depending on the question asked. If you do not have any '
@@ -41,13 +34,14 @@ def get_code_suggestions(file_name, content_chunks):
 
     for idx, chunk in enumerate(content_chunks, 1):
         prompt = (f"Context: The file '{file_name}' (chunk '{str(idx)}') contains: {chunk}. "
-                  # f"Questions: Could you give some recommendations for improving the code execution time?")
                   f"Could you give some recommendations for improving the code? and sorting suggestions list by "
                   f"priority from high to low.")
 
         with model.chat_session(SYSTEM_TEMPLATE):
-            response = model.generate(prompt=prompt, temp=0, max_tokens=1000)
-            print(f'\nSuggestions: {response}')
+            for token in model.generate(prompt=prompt, temp=0, max_tokens=1000, streaming=True):
+                sys.stdout.write(token)
+
+    sys.stdout.flush()
 
 
 # Press the green button in the gutter to run the script.
